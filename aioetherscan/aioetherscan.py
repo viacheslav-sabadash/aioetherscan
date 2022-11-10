@@ -45,22 +45,22 @@ class Client:
 
     @property
     def _cache_type_factory(self):
-        payload = {
+        data = {
             'cache_name': self._cache_name,
             'expire_after': self._cache_expire_after
         }
         if self._cache_backend == 'CacheBackend':
-            return aiohttp_client_cache.CacheBackend(**payload)
+            return aiohttp_client_cache.CacheBackend(**data)
         elif self._cache_backend == 'DynamoDBBackend':
-            return aiohttp_client_cache.DynamoDBBackend(**payload)
+            return aiohttp_client_cache.DynamoDBBackend(**data)
         elif self._cache_backend == 'FileBackend':
-            return aiohttp_client_cache.FileBackend(**payload)
+            return aiohttp_client_cache.FileBackend(**data)
         elif self._cache_backend == 'MongoDBBackend':
-            return aiohttp_client_cache.MongoDBBackend(**payload)
+            return aiohttp_client_cache.MongoDBBackend(**data)
         elif self._cache_backend == 'RedisBackend':
-            return aiohttp_client_cache.RedisBackend(**payload)
+            return aiohttp_client_cache.RedisBackend(**data)
         elif self._cache_backend == 'SQLiteBackend':
-            return aiohttp_client_cache.SQLiteBackend(**payload)
+            return aiohttp_client_cache.SQLiteBackend(**data)
         else:
             return aiohttp_client_cache.CacheBackend(self._cache_name or 'demo_cache')
 
@@ -70,11 +70,10 @@ class Client:
             self._session = aiohttp_client_cache.CachedSession(
                 cache=self._cache_type_factory
             )
-
             self._session.headers.update(
                 {
-                    'User-agent': 'etherscan - python wrapper '
-                                  'around etherscan.io (github.com/neoctobers/etherscan)'
+                    'User-agent': 'aioetherscan - python wrapper '
+                                  'around etherscan.io (github.com/viacheslav-sabadash/aioetherscan)'
                 }
             )
 
@@ -137,28 +136,29 @@ class Client:
             'ethusd_timestamp': int(r['ethbtc_timestamp']),
         }
 
-    def get_eth_supply(self):
+    async def get_eth_supply(self):
         self._params['module'] = 'stats'
         self._params['action'] = 'ethsupply'
 
-        return int(self.__req())
+        return int(await self.__req())
 
-    def get_eth_balance(self, address: str):
+    async def get_eth_balance(self, address: str):
         """Get ETH balance by address."""
         self._params['module'] = 'account'
         self._params['action'] = 'balance'
         self._params['address'] = address
 
-        return int(self.__req())
+        return int(await self.__req())
 
-    def get_eth_balances(self, addresses: list):
+    async def get_eth_balances(self, addresses: list):
         """Get ETH balances by addresses list."""
         self._params['module'] = 'account'
         self._params['action'] = 'balancemulti'
         self._params['address'] = ','.join(addresses)
 
         balances = {}
-        for row in self.__req():
+        rs = await self.__req()
+        for row in rs:
             balances[row['account']] = int(row['balance'])
 
         return balances
@@ -190,15 +190,16 @@ class Client:
             'block_hash': self.__str(source['blockHash']),
         }
 
-    def get_transactions_by_address(self,
-                                    address: str,
-                                    type: str = 'normal',
-                                    start_block: int = 0,
-                                    end_block: int = 999999999,
-                                    page: int = 1,
-                                    limit: int = 1000,
-                                    sort: str = 'asc',
-                                    ):
+    async def get_transactions_by_address(
+            self,
+            address: str,
+            type: str = 'normal',
+            start_block: int = 0,
+            end_block: int = 999999999,
+            page: int = 1,
+            limit: int = 1000,
+            sort: str = 'asc',
+    ):
         """Get transactions by address."""
         self._params['module'] = 'account'
 
@@ -216,7 +217,7 @@ class Client:
         self._params['offset'] = limit
         self._params['sort'] = sort
 
-        rs = self.__req()
+        rs = await self.__req()
 
         transactions = []
         for t in rs:
@@ -252,15 +253,16 @@ class Client:
             'block_hash': self.__str(source['blockHash']),
         }
 
-    def get_token_transactions(self,
-                               contract_address: str = None,
-                               address: str = None,
-                               start_block: int = 0,
-                               end_block: int = 999999999,
-                               page: int = 1,
-                               limit: int = 1000,
-                               sort: str = 'asc',
-                               ):
+    async def get_token_transactions(
+            self,
+            contract_address: str = None,
+            address: str = None,
+            start_block: int = 0,
+            end_block: int = 999999999,
+            page: int = 1,
+            limit: int = 1000,
+            sort: str = 'asc',
+    ):
         """Get ERC20 token transactions by contract address."""
         if contract_address is None and address is None:
             raise EtherscanIoException('Param `contract_address` and `address` cannot be None at the same time.')
@@ -280,7 +282,7 @@ class Client:
         self._params['offset'] = limit
         self._params['sort'] = sort
 
-        rs = self.__req()
+        rs = await self.__req()
 
         token_transactions = []
         for t in rs:
@@ -288,22 +290,22 @@ class Client:
 
         return token_transactions
 
-    def get_gas_price(self):
+    async def get_gas_price(self):
         """Get gas price."""
         self._params['action'] = 'eth_gasPrice'
 
-        return int(self.__proxy_req(), 16)
+        return int(await self.__proxy_req(), 16)
 
-    def get_block_number(self):
+    async def get_block_number(self):
         """Get latest block number."""
         self._params['action'] = 'eth_blockNumber'
 
-        return int(self.__proxy_req(), 16)
+        return int(await self.__proxy_req(), 16)
 
-    def get_block_by_number(self, block_number):
+    async def get_block_by_number(self, block_number):
         """Get block by number."""
         self._params['action'] = 'eth_getBlockByNumber'
         self._params['tag'] = hex(block_number)
         self._params['boolean'] = True
 
-        return self.__proxy_req()
+        return await self.__proxy_req()
