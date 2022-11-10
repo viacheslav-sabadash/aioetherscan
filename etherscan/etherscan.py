@@ -1,18 +1,21 @@
 # coding:utf-8
 import os
 import tempfile
-import requests_cache
+
+import aiohttp_client_cache
+
 from .errors import EtherscanIoException
 
 
-class Client():
+class Client:
 
-    def __init__(self,
-                 api_key: str,
-                 network=None,
-                 cache_backend='sqlite',
-                 cache_expire_after=5,
-                 ):
+    def __init__(
+            self,
+            api_key: str,
+            network=None,
+            cache_backend='sqlite',
+            cache_expire_after=5,
+    ):
 
         # API URL
         self._api_url = 'https://api.etherscan.io/api'
@@ -41,12 +44,31 @@ class Client():
         self._cache_expire_after = cache_expire_after
 
     @property
+    def _cache_type_factory(self):
+        payload = {
+            'cache_name': self._cache_name,
+            'expire_after': self._cache_expire_after
+        }
+        if self._cache_backend == 'CacheBackend':
+            return aiohttp_client_cache.CacheBackend(**payload)
+        elif self._cache_backend == 'DynamoDBBackend':
+            return aiohttp_client_cache.DynamoDBBackend(**payload)
+        elif self._cache_backend == 'FileBackend':
+            return aiohttp_client_cache.FileBackend(**payload)
+        elif self._cache_backend == 'MongoDBBackend':
+            return aiohttp_client_cache.MongoDBBackend(**payload)
+        elif self._cache_backend == 'RedisBackend':
+            return aiohttp_client_cache.RedisBackend(**payload)
+        elif self._cache_backend == 'SQLiteBackend':
+            return aiohttp_client_cache.SQLiteBackend(**payload)
+        else:
+            return aiohttp_client_cache.CacheBackend(self._cache_name or 'demo_cache')
+
+    @property
     def session(self):
         if not self._session:
-            self._session = requests_cache.core.CachedSession(
-                cache_name=self._cache_name,
-                backend=self._cache_backend,
-                expire_after=self._cache_expire_after,
+            self._session = aiohttp_client_cache.CachedSession(
+                cache=self._cache_type_factory
             )
 
             self._session.headers.update(
@@ -58,19 +80,23 @@ class Client():
 
         return self._session
 
-    def __req(self):
-        r = self.session.post(url=self._api_url, data=self._params).json()
+    async def __req(self):
+        async with self._session as session:
+            async with session.post(url=self._api_url, data=self._params) as resp:
+                r = await resp.json()
 
         if '0' == r['status']:
             print('--- Etherscan.io Message ---', r['message'])
 
         return r['result']
 
-    def __proxy_req(self):
+    async def __proxy_req(self):
         self._params['module'] = 'proxy'
 
         # get, json
-        r = self.session.get(url=self._api_url, data=self._params).json()
+        async with self._session as session:
+            async with session.get(url=self._api_url, data=self._params) as resp:
+                r = await resp.json()
 
         # todo: handle exceptions
 
@@ -97,12 +123,12 @@ class Client():
             return None
         return x
 
-    def get_eth_price(self):
+    async def get_eth_price(self):
         """Get ETH price."""
         self._params['module'] = 'stats'
         self._params['action'] = 'ethprice'
 
-        r = self.__req()
+        r = await self.__req()
 
         return {
             'ethbtc': float(r['ethbtc']),
