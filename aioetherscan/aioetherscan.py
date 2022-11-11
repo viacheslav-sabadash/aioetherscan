@@ -38,7 +38,7 @@ class Client:
     @property
     def headers(self):
         return {
-            'User-agent': 'aioetherscan - python wrapper '
+            'User-agent': 'aioetherscan - async python wrapper '
                           'around etherscan.io (github.com/viacheslav-sabadash/aioetherscan)'
         }
 

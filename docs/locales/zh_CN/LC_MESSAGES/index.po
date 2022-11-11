@@ -18,7 +18,7 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 #: ../../index.rst:3
-msgid "Welcome to etherscan.io API python wrapper!"
+msgid "Welcome to etherscan.io API async python wrapper!"
 msgstr "中文标题"
 
 #: ../../index.rst:5

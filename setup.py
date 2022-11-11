@@ -9,7 +9,7 @@ setuptools.setup(
     version="0.2.3",
     author="@viacheslav-sabadash",
     author_email="neoctobers@gmail.com",
-    description="AioEtherscan.io API wrapper",
+    description="Etherscan.io API async wrapper",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/viacheslav-sabadash/aioetherscan",
