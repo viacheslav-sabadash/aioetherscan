@@ -70,18 +70,18 @@ class Client:
             self._session = aiohttp_client_cache.CachedSession(
                 cache=self._cache_type_factory
             )
-            self._session.headers.update(
-                {
-                    'User-agent': 'aioetherscan - python wrapper '
-                                  'around etherscan.io (github.com/viacheslav-sabadash/aioetherscan)'
-                }
-            )
-
         return self._session
 
+    @property
+    def headers(self):
+        return {
+            'User-agent': 'aioetherscan - python wrapper '
+                          'around etherscan.io (github.com/viacheslav-sabadash/aioetherscan)'
+        }
+
     async def __req(self):
-        async with self._session as session:
-            async with session.post(url=self._api_url, data=self._params) as resp:
+        async with self.session as session:
+            async with session.post(url=self._api_url, data=self._params, headers=self.headers) as resp:
                 r = await resp.json()
 
         if '0' == r['status']:
@@ -94,7 +94,7 @@ class Client:
 
         # get, json
         async with self._session as session:
-            async with session.get(url=self._api_url, data=self._params) as resp:
+            async with session.get(url=self._api_url, data=self._params, headers=self.headers) as resp:
                 r = await resp.json()
 
         # todo: handle exceptions
