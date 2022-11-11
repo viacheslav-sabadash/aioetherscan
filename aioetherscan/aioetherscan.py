@@ -97,7 +97,8 @@ class Client:
             async with session.get(url=self._api_url, data=self._params, headers=self.headers) as resp:
                 r = await resp.json()
 
-        # todo: handle exceptions
+        if '0' == r['status']:
+            print('--- Etherscan.io Message ---', r['message'])
 
         return r['result']
 
