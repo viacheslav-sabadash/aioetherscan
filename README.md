@@ -1,6 +1,6 @@
-# AioEtherscan.io API wrapper
+# async Etherscan.io API wrapper
 
-An AioEtherscan.io API wrapper, for Python.
+An async Etherscan.io API wrapper, for Python.
 
 Based on [https://github.com/neoctobers/etherscan](https://github.com/neoctobers/etherscan) ([@neoctobers](https://github.com/neoctobers))
 [https://pypi.org/project/etherscan/](https://pypi.org/project/etherscan/)
