@@ -1,44 +1,100 @@
-# Etherscan.io API wrapper
+# AioEtherscan.io API wrapper
 
-[![PyPi Version](http://img.shields.io/pypi/v/etherscan.svg)](https://pypi.python.org/pypi/etherscan/)
+An AioEtherscan.io API wrapper, for Python.
 
-An Etherscan.io API wrapper, for Python.
-
-With a default cache supported by [requests-cache](https://github.com/reclosedev/requests-cache)
+Based on [https://github.com/neoctobers/etherscan](https://github.com/neoctobers/etherscan) ([@neoctobers](https://github.com/neoctobers))
+[https://pypi.org/project/etherscan/](https://pypi.org/project/etherscan/)
 
 ## Installation
 ```
-pip3 install etherscan
+pip3 install aioetherscan
 ```
 
 ## Usage
+
 ```python
-import etherscan
+import asyncio
 
-es = etherscan.Client(
-    api_key='YOUR_API_KEY',
-    cache_expire_after=5,
-)
+import aiohttp
+import aioetherscan
 
-eth_price = es.get_eth_price()
 
-eth_supply = es.get_eth_supply()
+async def main():
+    
+    async with aiohttp.ClientSession() as session:
+        es = aioetherscan.Client(
+            api_key='YOUR_API_KEY',
+            session=session
+        )
+        
+        eth_price = await es.get_eth_price()
+    
+        eth_supply = await es.get_eth_supply()
+        
+        eth_balance = es.get_eth_balance('0x39eB410144784010b84B076087B073889411F878')
+        
+        eth_balances = es.get_eth_balances([
+            '0x39eB410144784010b84B076087B073889411F878',
+            '0x39eB410144784010b84B076087B073889411F879',
+        ])
+        
+        gas_price = es.get_gas_price()
+        
+        block = es.get_block_by_number(block_number=12345)
+        
+        transactions = es.get_transactions_by_address('0x39eB410144784010b84B076087B073889411F878')
+        
+        token_transations = es.get_token_transactions(
+            contract_address='0xEF68e7C694F40c8202821eDF525dE3782458639f',
+            address='0xEF68e7C694F40c8202821eDF525dE3782458639f',
+        )
 
-eth_balance = es.get_eth_balance('0x39eB410144784010b84B076087B073889411F878')
 
-eth_balances = es.get_eth_balances([
-    '0x39eB410144784010b84B076087B073889411F878',
-    '0x39eB410144784010b84B076087B073889411F879',
-])
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+```
 
-gas_price = es.get_gas_price()
+or with [aiohttp_client_cache](https://pypi.org/project/aiohttp-client-cache/)
 
-block = es.get_block_by_number(block_number=12345)
 
-transactions = es.get_transactions_by_address('0x39eB410144784010b84B076087B073889411F878')
+```python
+import asyncio
 
-token_transations = es.get_token_transactions(
-    contract_address='0xEF68e7C694F40c8202821eDF525dE3782458639f',
-    address='0xEF68e7C694F40c8202821eDF525dE3782458639f',
-)
+from aiohttp_client_cache import CachedSession, SQLiteBackend
+import aioetherscan
+
+
+async def main():
+    
+    async with CachedSession(cache=SQLiteBackend('demo_cache')) as session:
+        es = aioetherscan.Client(
+            api_key='YOUR_API_KEY',
+            session=session
+        )
+        
+        eth_price = await es.get_eth_price()
+    
+        eth_supply = await es.get_eth_supply()
+        
+        eth_balance = es.get_eth_balance('0x39eB410144784010b84B076087B073889411F878')
+        
+        eth_balances = es.get_eth_balances([
+            '0x39eB410144784010b84B076087B073889411F878',
+            '0x39eB410144784010b84B076087B073889411F879',
+        ])
+        
+        gas_price = es.get_gas_price()
+        
+        block = es.get_block_by_number(block_number=12345)
+        
+        transactions = es.get_transactions_by_address('0x39eB410144784010b84B076087B073889411F878')
+        
+        token_transations = es.get_token_transactions(
+            contract_address='0xEF68e7C694F40c8202821eDF525dE3782458639f',
+            address='0xEF68e7C694F40c8202821eDF525dE3782458639f',
+        )
+
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
 ```

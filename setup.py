@@ -5,14 +5,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="etherscan",
+    name="aioetherscan",
     version="0.2.3",
-    author="@neoctobers",
+    author="@viacheslav-sabadash",
     author_email="neoctobers@gmail.com",
-    description="Etherscan.io API wrapper",
+    description="AioEtherscan.io API wrapper",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/neoctobers/etherscan",
+    url="https://github.com/viacheslav-sabadash/aioetherscan",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -20,6 +20,5 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'requests_cache',
     ],
 )
