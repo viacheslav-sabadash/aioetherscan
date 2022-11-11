@@ -1,8 +1,4 @@
 # coding:utf-8
-import os
-import tempfile
-
-import aiohttp_client_cache
 
 from .errors import EtherscanIoException
 
@@ -12,13 +8,15 @@ class Client:
     def __init__(
             self,
             api_key: str,
+            session,
             network=None,
-            cache_backend='sqlite',
-            cache_expire_after=5,
     ):
 
         # API URL
         self._api_url = 'https://api.etherscan.io/api'
+
+        # session or cached_session
+        self._session = session
 
         # API Key
         self._api_key = api_key
@@ -37,41 +35,6 @@ class Client:
             'apikey': self._api_key,
         }
 
-        # session & cache
-        self._session = None
-        self._cache_name = os.path.join(tempfile.gettempdir(), 'etherscan_cache')
-        self._cache_backend = cache_backend
-        self._cache_expire_after = cache_expire_after
-
-    @property
-    def _cache_type_factory(self):
-        data = {
-            'cache_name': self._cache_name,
-            'expire_after': self._cache_expire_after
-        }
-        if self._cache_backend == 'CacheBackend':
-            return aiohttp_client_cache.CacheBackend(**data)
-        elif self._cache_backend == 'DynamoDBBackend':
-            return aiohttp_client_cache.DynamoDBBackend(**data)
-        elif self._cache_backend == 'FileBackend':
-            return aiohttp_client_cache.FileBackend(**data)
-        elif self._cache_backend == 'MongoDBBackend':
-            return aiohttp_client_cache.MongoDBBackend(**data)
-        elif self._cache_backend == 'RedisBackend':
-            return aiohttp_client_cache.RedisBackend(**data)
-        elif self._cache_backend == 'SQLiteBackend':
-            return aiohttp_client_cache.SQLiteBackend(**data)
-        else:
-            return aiohttp_client_cache.CacheBackend(self._cache_name or 'demo_cache')
-
-    @property
-    def session(self):
-        if not self._session:
-            self._session = aiohttp_client_cache.CachedSession(
-                cache=self._cache_type_factory
-            )
-        return self._session
-
     @property
     def headers(self):
         return {
@@ -80,9 +43,8 @@ class Client:
         }
 
     async def __req(self):
-        async with self.session as session:
-            async with session.post(url=self._api_url, data=self._params, headers=self.headers) as resp:
-                r = await resp.json()
+        async with self._session.post(url=self._api_url, data=self._params, headers=self.headers) as resp:
+            r = await resp.json()
 
         if '0' == r['status']:
             print('--- Etherscan.io Message ---', r['message'])
@@ -93,9 +55,8 @@ class Client:
         self._params['module'] = 'proxy'
 
         # get, json
-        async with self._session as session:
-            async with session.get(url=self._api_url, data=self._params, headers=self.headers) as resp:
-                r = await resp.json()
+        async with self._session.get(url=self._api_url, data=self._params, headers=self.headers) as resp:
+            r = await resp.json()
 
         if '0' == r['status']:
             print('--- Etherscan.io Message ---', r['message'])
@@ -298,7 +259,7 @@ class Client:
         return int(await self.__proxy_req(), 16)
 
     async def get_block_number(self):
-        """Get latest block number."""
+        """Get the latest block number."""
         self._params['action'] = 'eth_blockNumber'
 
         return int(await self.__proxy_req(), 16)
