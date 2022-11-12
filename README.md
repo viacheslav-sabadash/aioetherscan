@@ -5,10 +5,13 @@ An async Etherscan.io API wrapper, for Python.
 Based on [https://github.com/neoctobers/etherscan](https://github.com/neoctobers/etherscan) ([@neoctobers](https://github.com/neoctobers))
 [https://pypi.org/project/etherscan/](https://pypi.org/project/etherscan/)
 
-## Installation
-```
-pip3 install aioetherscan
-```
+[//]: # (## Installation)
+
+[//]: # (```)
+
+[//]: # (pip3 install aioetherscan)
+
+[//]: # (```)
 
 ## Usage
 
