@@ -46,7 +46,7 @@ class Client:
         async with self._session.post(url=self._api_url, data=self._params, headers=self.headers) as resp:
             r = await resp.json()
 
-        if '0' == r['status']:
+        if '0' == resp.status:
             print('--- Etherscan.io Message ---', r['message'])
 
         return r['result']
@@ -58,7 +58,7 @@ class Client:
         async with self._session.get(url=self._api_url, data=self._params, headers=self.headers) as resp:
             r = await resp.json()
 
-        if '0' == r['status']:
+        if '0' == resp.status:
             print('--- Etherscan.io Message ---', r['message'])
 
         return r['result']
